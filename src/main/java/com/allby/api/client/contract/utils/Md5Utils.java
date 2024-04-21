@@ -4,11 +4,6 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-/**
- * @author zhuangxingyu
- * @date 2023/7/18 17:47
- * @description 注释：
- */
 public class Md5Utils {
 
     public static String md5ToLowerCase(String input) {
