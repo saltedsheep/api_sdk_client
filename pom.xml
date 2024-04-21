@@ -5,9 +5,9 @@
     <modelVersion>4.0.0</modelVersion>
 
 
-    <groupId>allbymusic.server</groupId>
+    <groupId>io.github.saltedsheep</groupId>
     <artifactId>api_sdk_client</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>
@@ -16,7 +16,7 @@
     </properties>
 
     <packaging>jar</packaging>
-
+    <description>allbymusic api sdk</description>
     <url>
         https://github.com/saltedsheep/api_sdk_client
     </url>
@@ -63,6 +63,7 @@
                 <configuration>
                     <publishingServerId>central</publishingServerId>
                     <tokenAuth>true</tokenAuth>
+                    <!-- 自动发布 -->
                     <autoPublish>false</autoPublish>
                 </configuration>
             </plugin>

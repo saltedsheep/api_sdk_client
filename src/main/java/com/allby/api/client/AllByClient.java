@@ -133,6 +133,15 @@ public class AllByClient extends BaseClient implements AllByInterface {
         private String appid;
         private String secret;
         private boolean tokenRefresh;
+        private boolean timerController;
+
+        public boolean getTimerController() {
+            return timerController;
+        }
+
+        public void setTimerController(boolean timerController) {
+            this.timerController = timerController;
+        }
 
         public Builder tokenRefresh(boolean tokenRefresh) {
             this.tokenRefresh = tokenRefresh;
@@ -150,6 +159,9 @@ public class AllByClient extends BaseClient implements AllByInterface {
         }
 
         public AllByClient build() {
+            if (StringUtils.isEmpty(appid) || StringUtils.isEmpty(secret)) {
+                throw new IllegalArgumentException("param error");
+            }
             AllByClient client = new AllByClient(appid, secret, tokenRefresh);
             if (timerController) {
                 Timer timer = new Timer();

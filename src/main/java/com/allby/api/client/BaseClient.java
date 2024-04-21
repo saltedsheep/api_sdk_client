@@ -37,35 +37,34 @@ public abstract class BaseClient {
     private int connectTimeout = 10 * 1000;
     private int socketTimout = 10 * 1000;
     private int requestTimout = 10 * 1000;
-    public static String appid;
-    public static String secret;
-    public static boolean timerController = false;
+    private String appid;
+    private String secret;
     private ObjectMapper objectMapper = new ObjectMapper();
-
+    private long tokenUpdateTime = 0L;
     private String token = null;
 
     protected BaseClient(String appid, String secret, boolean timerController) {
-        BaseClient.appid = appid;
-        BaseClient.secret = secret;
-        BaseClient.timerController = timerController;
-        client = createClient();
-        if (StringUtils.isNotEmpty(BaseClient.appid) && StringUtils.isNotEmpty(BaseClient.secret)) {
-            setToken();
-        }
+        this.appid = appid;
+        this.secret = secret;
+        this.client = createClient();
+        this.token = createToken(this.appid, this.secret);
+        this.tokenUpdateTime = System.currentTimeMillis();
     }
 
     private CloseableHttpClient createClient() {
         return HttpClientBuilder.create().build();
     }
 
-
-    public void setToken() {
-        String password = DesUtils.decryptBasedDes(BaseClient.secret);
+    public String createToken(String appid, String secret) {
+        if (StringUtils.isEmpty(appid) || StringUtils.isEmpty(secret)) {
+            return null;
+        }
+        String password = DesUtils.decryptBasedDes(getSecret());
         String l = String.valueOf(System.currentTimeMillis());
         String substring = l.substring(0, 10);
-        String s = Md5Utils.md5ToLowerCase(BaseClient.appid + password + substring);
+        String s = Md5Utils.md5ToLowerCase(getAppid() + password + substring);
         LoginRequest request = new LoginRequest();
-        request.setAppId(BaseClient.appid);
+        request.setAppId(getAppid());
         request.setTimestamp(substring);
         request.setSign(s);
         try {
@@ -73,7 +72,10 @@ public abstract class BaseClient {
                 throw new IllegalArgumentException("param error");
             }
             LoginResponse loginResponse = invoke(true, "/auth/token", request, LoginResponse.class);
-            this.token = "Bearer " + loginResponse.getData().getAccessToken();
+            if (loginResponse == null) {
+                throw new RuntimeException("get token failed");
+            }
+            return "Bearer " + loginResponse.getData().getAccessToken();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -95,7 +97,6 @@ public abstract class BaseClient {
     private <Response> Response invokeInternal(boolean isLogin, ExecutionContext<Response> context, boolean tokenRetry) throws Exception {
         CloseableHttpResponse httpResponse = null;
         try {
-//            validate(context);
             HttpPost httpPost = prepareWebRequest(context, isLogin);
             httpResponse = executeWithRetry(httpPost, context);
             context.setResponse(httpResponse);
@@ -103,10 +104,17 @@ public abstract class BaseClient {
             Response response = deserializeResponse(httpResponse, context);
             checkResponseStatus(response);
             return response;
-        }catch (TokenExpiredException e) {
+        } catch (TokenExpiredException e) {
             if (!tokenRetry) {
-                setToken();
-                return invokeInternal(isLogin, context, true);
+                if (System.currentTimeMillis() - tokenUpdateTime < 30 * 60 * 1000) {
+                    synchronized (this) {
+                        if (System.currentTimeMillis() - tokenUpdateTime < 30 * 60 * 1000) {
+                            this.token = createToken(this.appid, this.secret);
+                            this.tokenUpdateTime = System.currentTimeMillis() / (1000 * 60);
+                            return invokeInternal(isLogin, context, true);
+                        }
+                    }
+                }
             }
             throw e;
         } catch (Throwable e) {
@@ -310,7 +318,7 @@ public abstract class BaseClient {
         if (StringUtils.isEmpty(request.getAppId()) || StringUtils.isEmpty(request.getTimestamp()) || StringUtils.isEmpty(request.getSign())) {
             throw new IllegalArgumentException("param error");
         }
-        LoginResponse loginResponse = invoke( true, "/auth/token", request, LoginResponse.class);
+        LoginResponse loginResponse = invoke(true, "/auth/token", request, LoginResponse.class);
         String accessToken = loginResponse.getData().getAccessToken();
         return "Bearer " + accessToken;
     }
@@ -349,19 +357,27 @@ public abstract class BaseClient {
         this.requestTimout = requestTimout;
     }
 
-    public static boolean isTimerController() {
-        return timerController;
-    }
-
-    public static void setTimerController(boolean timerController) {
-        BaseClient.timerController = timerController;
-    }
-
     public String getToken() {
         return token;
     }
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getAppid() {
+        return appid;
+    }
+
+    public void setAppid(String appid) {
+        this.appid = appid;
+    }
+
+    public String getSecret() {
+        return secret;
+    }
+
+    public void setSecret(String secret) {
+        this.secret = secret;
     }
 }
