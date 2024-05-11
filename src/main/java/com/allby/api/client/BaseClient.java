@@ -32,7 +32,7 @@ public abstract class BaseClient {
 
     private final Map<String, String> headers = Maps.newConcurrentMap();
     private CloseableHttpClient client;
-    private static final String BASE_URL = "http://k8s.allbymusic.com/api";
+    private static final String BASE_URL = "http://api.allbymusic.com/api";
     private int retry = 1;
     private int connectTimeout = 10 * 1000;
     private int socketTimout = 10 * 1000;
