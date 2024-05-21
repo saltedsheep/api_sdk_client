@@ -31,7 +31,7 @@ import java.util.Map;
 public abstract class BaseClient {
     private final Map<String, String> headers = Maps.newConcurrentMap();
     private CloseableHttpClient client;
-    private static final String BASE_URL = "http://k8s.allbymusic.com:9001/api";
+    private static final String BASE_URL = "http://k8s.allbymusic.com/api";
     private int retry = 1;
     private int connectTimeout = 10 * 1000;
     private int socketTimout = 10 * 1000;
@@ -169,10 +169,6 @@ public abstract class BaseClient {
 
     private <Response> Response deserializeResponse(CloseableHttpResponse httpResponse, ExecutionContext<Response> context) throws IOException {
         Class<Response> clazz = context.getResponseClass();
-//        String content = EntityUtils.toString(httpResponse.getEntity());
-//        Gson gson = new Gson();
-//        Response json = gson.fromJson(content, clazz);
-//        return json;
         InputStream inputStream = getResponseStream(httpResponse, context);
         try {
             return objectMapper.readValue(inputStream, clazz);
@@ -242,9 +238,9 @@ public abstract class BaseClient {
         while (canRetry(executionCount)) {
             try {
                 return execute(httpPost, context);
-            } catch (IOException e) {
-                if (isRetryException(e)) {
-                    retryException = e;
+            } catch (Exception e) {
+                if (e instanceof ConnectException || e instanceof ConnectTimeoutException) {
+                    retryException = (IOException) e;
                 } else {
                     throw e;
                 }
