@@ -74,6 +74,7 @@ public abstract class BaseClient {
             if (loginResponse == null) {
                 throw new RuntimeException("get token failed");
             }
+            System.out.println("Bearer " + loginResponse.getData().getAccessToken());
             return "Bearer " + loginResponse.getData().getAccessToken();
         } catch (Exception e) {
             throw new RuntimeException(e);

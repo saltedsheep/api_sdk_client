@@ -151,6 +151,11 @@ public class AllByClientTestOne {
     @Test
     public void singerInfo() throws Exception {
         GetSingerInfoRequest request = new GetSingerInfoRequest();
+        SceneInfo sceneInfo = new SceneInfo();
+        sceneInfo.setArea("CHN");
+        sceneInfo.setSceneType(1);
+        sceneInfo.setClientCode("025c232aa6b16e81f88181ce43c99449d1828b403fc7a567ecb53f5ec4ef32db");
+        request.setSceneInfo(sceneInfo);
         request.setCodes(Lists.newArrayList("MLSI1801703"));
         GetSingerInfoResponse response = client.getSingerInfo(request);
         System.out.println(response.getCode());
