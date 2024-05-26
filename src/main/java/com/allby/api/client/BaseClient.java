@@ -33,18 +33,27 @@ public abstract class BaseClient {
     private CloseableHttpClient client;
     private static final String BASE_URL = "http://k8s.allbymusic.com/api";
     private int retry = 1;
-    private int connectTimeout = 10 * 1000;
+    private int connectTimeout = 5 * 1000;
     private int socketTimout = 10 * 1000;
-    private int requestTimout = 10 * 1000;
+    private int requestTimout = 15 * 1000;
     private String appid;
     private String secret;
     private ObjectMapper objectMapper = new ObjectMapper();
     private long tokenUpdateTime = 0L;
     private String token = null;
 
-    protected BaseClient(String appid, String secret, boolean timerController) {
+    public BaseClient(String appid, String secret, int connectTimeout, int socketTimout, int requestTimout, boolean timerController) {
         this.appid = appid;
         this.secret = secret;
+        if (connectTimeout > 0) {
+            this.connectTimeout = connectTimeout;
+        }
+        if (socketTimout > 0) {
+            this.socketTimout = socketTimout;
+        }
+        if (requestTimout > 0) {
+            this.requestTimout = requestTimout;
+        }
         this.client = createClient();
         this.token = createToken(this.appid, this.secret);
         this.tokenUpdateTime = System.currentTimeMillis();

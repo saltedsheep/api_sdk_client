@@ -10,10 +10,10 @@ import java.util.Timer;
 
 public class AllByClient extends BaseClient implements AllByInterface {
 
-
-    public AllByClient(String appid, String secret, boolean timerController) {
-        super(appid, secret, timerController);
+    public AllByClient(String appid, String secret, Integer connectTimeout, Integer socketTimout, Integer requestTimout, boolean timerController) {
+        super(appid, secret, connectTimeout, socketTimout, requestTimout, timerController);
     }
+
     @Override
     public GetSingerAlbumResponse getSingerAlbum(GetSingerAlbumRequest request) throws Exception {
         if (request == null || StringUtils.isEmpty(request.getCode())) {
@@ -129,11 +129,13 @@ public class AllByClient extends BaseClient implements AllByInterface {
     }
 
     public static class Builder {
-
         private String appid;
         private String secret;
         private boolean tokenRefresh;
         private boolean timerController;
+        private Integer connectTimeout;
+        private Integer socketTimout;
+        private Integer requestTimout;
 
         public boolean getTimerController() {
             return timerController;
@@ -145,6 +147,21 @@ public class AllByClient extends BaseClient implements AllByInterface {
 
         public Builder tokenRefresh(boolean tokenRefresh) {
             this.tokenRefresh = tokenRefresh;
+            return this;
+        }
+
+        public Builder connectTimeout(Integer connectTimeout) {
+            this.connectTimeout = connectTimeout;
+            return this;
+        }
+
+        public Builder socketTimout(Integer socketTimout) {
+            this.socketTimout = socketTimout;
+            return this;
+        }
+
+        public Builder requestTimout(Integer requestTimout) {
+            this.requestTimout = requestTimout;
             return this;
         }
 
@@ -162,7 +179,7 @@ public class AllByClient extends BaseClient implements AllByInterface {
             if (StringUtils.isEmpty(appid) || StringUtils.isEmpty(secret)) {
                 throw new IllegalArgumentException("param error");
             }
-            AllByClient client = new AllByClient(appid, secret, tokenRefresh);
+            AllByClient client = new AllByClient(appid, secret, connectTimeout, socketTimout, requestTimout, timerController);
             if (timerController) {
                 Timer timer = new Timer();
                 TokenTimer task = new TokenTimer(client);
